@@ -1,0 +1,11 @@
+node_modules/
+.env
+.env.*
+.cache/
+test-results/
+playwright-report/
+playwright/.cache/
+.vscode/
+coverage/
+dist/
+output/
