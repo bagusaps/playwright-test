@@ -33,7 +33,10 @@ export default defineConfig({
     {
       name: 'Safari Mobile',
       use: {
-        ...devices['iPhone 13'],
+        browserName: 'webkit',
+        viewport: { width: 480, height: 920 },
+        hasTouch: true,
+        deviceScaleFactor: 3,
       },
     },
   ],

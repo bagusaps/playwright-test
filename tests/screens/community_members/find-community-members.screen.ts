@@ -209,45 +209,25 @@ export class FindCommunityMembersScreen {
     return new Date(`${label} 1`);
   }
 
-  private async getVisibleMonths(): Promise<Date[]> {
-    const tables = this.page.locator(this.monthYearLabel);
-    const n = await tables.count();
-    const dates: Date[] = [];
-    for (let i = 0; i < n; i++) {
-      const label = await tables.nth(i).getAttribute('aria-label');
-      if (label) dates.push(this.parseMonthYear(label));
-    }
-    return dates;
-  }
-
   private async goToMonthYear(monthYear: string) {
     const targetMonthYear = this.parseMonthYear(monthYear);
-    const monthTables = this.page.locator(this.monthYearLabel);
-    const leftMonth = monthTables.first();
+    const currentMonth = this.page.locator(this.monthYearLabel).first();
     for (let i = 0; i < 36; i++) {
-      const visibleMonths = await this.getVisibleMonths();
-      if (visibleMonths.some((d) => d.getTime() === targetMonthYear.getTime())) return;
-      let goNext: boolean | null = null;
-      if (visibleMonths.length >= 2) {
-        const left = visibleMonths[0];
-        const right = visibleMonths[1];
-        if (targetMonthYear < left) goNext = false;
-        if (targetMonthYear > right) goNext = true;
-        if (goNext === null) return;
+        const currentMonthLabel = await currentMonth.getAttribute('aria-label');
+        if (!currentMonthLabel) throw new Error('current month label not found');
+        const currentMonthYear = this.parseMonthYear(currentMonthLabel);
+        if (currentMonthYear.getTime() === targetMonthYear.getTime()) return;
+        const goNext = currentMonthYear < targetMonthYear;
+        if (goNext) {
+          await expect(this.goToNextMonthButton).toBeVisible();
+          await expect(this.goToNextMonthButton).toBeEnabled();
+          await this.goToNextMonthButton.click();
       } else {
-        goNext = visibleMonths.length === 1 ? visibleMonths[0] < targetMonthYear : true;
+          await expect(this.goToPrevMonthButton).toBeVisible();
+          await expect(this.goToPrevMonthButton).toBeEnabled();
+          await this.goToPrevMonthButton.click();
       }
-      const before = await leftMonth.getAttribute('aria-label');
-      if (goNext) {
-        await expect(this.goToNextMonthButton).toBeVisible();
-        await expect(this.goToNextMonthButton).toBeEnabled();
-        await this.goToNextMonthButton.click();
-      } else {
-        await expect(this.goToPrevMonthButton).toBeVisible();
-        await expect(this.goToPrevMonthButton).toBeEnabled();
-        await this.goToPrevMonthButton.click();
-      }
-      await expect(leftMonth).not.toHaveAttribute('aria-label', before ?? '', { timeout: 4000 });
+      await expect(currentMonth).not.toHaveAttribute('aria-label', currentMonthLabel, { timeout: 4000 });
     }
     throw new Error(`Uncovered month-year`);
   }
