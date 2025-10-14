@@ -7,12 +7,14 @@ export async function interceptSegmentT(page: Page) {
   const flush = async () => {
     if (!pending.length) return;
     try {
-      await page.evaluate((events) => {
-        (window as any).__segT = (window as any).__segT || [];
-        (window as any).__segT.push(...events);
-      }, pending.splice(0, pending.length));
-    } catch {
-    }
+      await page.evaluate(
+        (events) => {
+          (window as any).__segT = (window as any).__segT || [];
+          (window as any).__segT.push(...events);
+        },
+        pending.splice(0, pending.length),
+      );
+    } catch {}
   };
 
   await page.addInitScript(() => {
@@ -43,7 +45,7 @@ export async function verifyAnalyticsEventProperties(
   page: Page,
   eventName: string,
   props: Record<string, any>,
-  timeoutMs = 7000
+  timeoutMs = 7000,
 ) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
@@ -53,7 +55,7 @@ export async function verifyAnalyticsEventProperties(
         (h) =>
           ['track', 'page'].includes(h?.type) &&
           (h?.event === eventName || h?.name === eventName) &&
-          Object.entries(props).every(([k, v]) => h?.properties?.[k] === v)
+          Object.entries(props).every(([k, v]) => h?.properties?.[k] === v),
       );
       if (matched) {
         expect(matched).toBeTruthy();

@@ -3,8 +3,8 @@ import fs from 'fs';
 import path from 'path';
 
 export default async function globalSetup(config: FullConfig) {
-    const { baseURL } = config.projects[0].use;
-    const browser = await chromium.launch();
+  const { baseURL } = config.projects[0].use;
+  const browser = await chromium.launch();
   const page = await browser.newPage();
 
   // 2) Pastikan folder ada & gunakan path absolut yang sama di setup & config
@@ -29,7 +29,9 @@ export default async function globalSetup(config: FullConfig) {
   await acceptIfVisible();
 
   // --- App 2 ---
-  await page.goto(`${baseURL}/financial-tools/budget-calculator`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${baseURL}/financial-tools/budget-calculator`, {
+    waitUntil: 'domcontentloaded',
+  });
   await acceptIfVisible();
 
   // 3) Simpan storageState ke path yang sama

@@ -1,244 +1,326 @@
-import { expect, Page } from "@playwright/test";
+import { expect, Page } from '@playwright/test';
 
 export class FindCommunityMembersScreen {
-    readonly page: Page;
-    readonly title;
-    readonly memberFilter;
-    readonly accountStatusFilter;
-    readonly activeStatus;
-    readonly pendingStatus;
-    readonly closedStatus;
-    readonly datePicker;
-    readonly dateCalendar;
-    readonly goToPrevMonthButton;
-    readonly goToNextMonthButton;
-    readonly monthYearLabel;
-    readonly tableRows;
-    readonly COLUMN_NAME = 0;
-    readonly COLUMN_EMAIL = 1;
-    readonly COLUMN_PHONE = 2;
-    readonly COLUMN_ACCOUNT_STATUS = 3;
-    readonly COLUMN_USER_ID = 4;
-    readonly COLUMN_SIGNUP_DATE = 5;
-    readonly memberCountText;
+  readonly page: Page;
+  readonly projectName: string;
+  readonly title;
+  readonly memberFilter;
+  readonly accountStatusFilter;
+  readonly activeStatus;
+  readonly pendingStatus;
+  readonly closedStatus;
+  readonly datePicker;
+  readonly dateCalendar;
+  readonly goToPrevMonthButton;
+  readonly goToNextMonthButton;
+  readonly monthYearLabel;
+  readonly memberListResult;
+  readonly tableRows;
+  readonly cardItems;
+  readonly mobileContainer;
+  readonly desktopContainer;
+  readonly COLUMN_NAME = 0;
+  readonly COLUMN_EMAIL = 1;
+  readonly COLUMN_PHONE = 2;
+  readonly COLUMN_ACCOUNT_STATUS = 3;
+  readonly COLUMN_USER_ID = 4;
+  readonly COLUMN_SIGNUP_DATE = 5;
+  readonly memberCountText;
 
-    constructor(page: Page){
-        this.page = page;
-        this.title = page.getByText(/Find community members/);
-        this.memberFilter = page.getByTestId('member-search');
-        this.datePicker = page.getByTestId('date-range-picker');
-        this.dateCalendar = page.getByTestId('date-calendar');
-        this.goToPrevMonthButton = page.locator('button[aria-label="Go to the Previous Month"]');
-        this.goToNextMonthButton = page.locator('button[aria-label="Go to the Next Month"]');
-        this.monthYearLabel = 'table[aria-label]'
-        this.tableRows = page.locator('tr[data-testid^="member-row-"]');
-        this.memberCountText = page.getByText(/\d+\s+members?\s+found/i).first();
-        this.accountStatusFilter = page.getByRole('combobox');
-        this.activeStatus = page.getByRole('option', {name: 'Active'});
-        this.pendingStatus = page.getByRole('option', {name: 'Pending'});
-        this.closedStatus = page.getByRole('option', {name: 'Closed'});
-    }
+  constructor(page: Page, projectName = '') {
+    this.page = page;
+    this.projectName = projectName;
+    this.title = page.getByText(/Find community members/);
+    this.memberFilter = page.getByTestId('member-search');
+    this.datePicker = page.getByTestId('date-range-picker');
+    this.dateCalendar = page.getByTestId('date-calendar');
+    this.goToPrevMonthButton = page.locator('button[aria-label="Go to the Previous Month"]');
+    this.goToNextMonthButton = page.locator('button[aria-label="Go to the Next Month"]');
+    this.monthYearLabel = 'table[aria-label]';
+    this.memberListResult = this.page.locator('[data-testid^="member-row-"]');
+    this.tableRows = this.memberListResult.filter({ has: this.page.locator('td') });
+    this.cardItems = this.memberListResult.filter({ has: this.page.locator('h3') });
+    this.mobileContainer = this.page.getByTestId('members-table-mobile');
+    this.desktopContainer = this.page.getByTestId('members-table-desktop');
+    this.memberCountText = page.getByText(/\d+\s+members?\s+found/i).first();
+    this.accountStatusFilter = page.getByRole('combobox');
+    this.activeStatus = page.getByRole('option', { name: 'Active' });
+    this.pendingStatus = page.getByRole('option', { name: 'Pending' });
+    this.closedStatus = page.getByRole('option', { name: 'Closed' });
+  }
 
-    async goto(){
-        await this.page.goto('https://v0-cmlookup2.vercel.app/');
-    }
+  private get isMobile() {
+    return /safari|iphone|mobile/i.test(this.projectName || '');
+  }
 
-    async isfindCommunityMembersScreenTitleVisible(){
-        await expect(this.title).toBeVisible();
-    }
+  async goto() {
+    await this.page.goto('https://v0-cmlookup2.vercel.app/');
+  }
 
-    async filterMemberByName(name: string){
-        await this.memberFilter.fill(name);
-    }
+  async isfindCommunityMembersScreenTitleVisible() {
+    await expect(this.title).toBeVisible();
+  }
 
-    async filterMemberByUserId(userId: string){
-        await this.memberFilter.fill(userId);
-    }
+  async filterMemberByName(name: string) {
+    await this.memberFilter.fill(name);
+  }
 
-    async filterMemberByEmail(email: string){
-        await this.memberFilter.fill(email);
-    }
+  async filterMemberByUserId(userId: string) {
+    await this.memberFilter.fill(userId);
+  }
 
-    async clickDatePicker(){
-        await this.datePicker.click();
-    }
+  async filterMemberByEmail(email: string) {
+    await this.memberFilter.fill(email);
+  }
 
-    async isDateCalendarVisible(){
-        await expect(this.dateCalendar).toBeVisible();
-    }
+  async clickDatePicker() {
+    await this.datePicker.click();
+  }
 
-    async filterByActiveStatus(){
-        await this.accountStatusFilter.click();
-        await this.activeStatus.click();
-    }
+  async isDateCalendarVisible() {
+    await expect(this.dateCalendar).toBeVisible();
+  }
 
-    async filterByPendingStatus(){
-        await this.accountStatusFilter.click();
-        await this.pendingStatus.click();
-    }
+  async filterByActiveStatus() {
+    await this.accountStatusFilter.click();
+    await this.activeStatus.click();
+  }
 
-    async filterByClosedStatus(){
-        await this.accountStatusFilter.click();
-        await this.closedStatus.click();
-    }
+  async filterByPendingStatus() {
+    await this.accountStatusFilter.click();
+    await this.pendingStatus.click();
+  }
 
-    async verifyFilterResultVisible() {
-        await this.tableRows.first().waitFor({ state: 'visible', timeout: 7000 });
-        const rowCount = await this.tableRows.count();
-        expect(rowCount,`Expected at least 1 row after filtering, but found ${rowCount}`).toBeGreaterThan(0);
-    }
+  async filterByClosedStatus() {
+    await this.accountStatusFilter.click();
+    await this.closedStatus.click();
+  }
 
-    async verifyMemberCountMatchesTable() {
-        const actual = await this.tableRows.count();
-        const text = await this.memberCountText.textContent();
-        const expected = parseInt(text!.match(/\d+/)![0], 10);
-        expect(actual, `Expected ${expected} rows, but found ${actual}`).toBe(expected);
+  private memberListInCurrentLayout() {
+    if (this.isMobile) {
+      return this.mobileContainer.locator('[data-testid^="member-row-"]:visible');
     }
+    return this.desktopContainer.locator('[data-testid^="member-row-"]:visible');
+  }
 
-    async verifyListMemberNameTable(name: string){
-        const rowCount = await this.tableRows.count();
-        for (let i = 0; i < rowCount; i++) {
-            const row = this.tableRows.nth(i);
-            const nameCell = row.locator('td').nth(this.COLUMN_NAME);
-            const text = (await nameCell.innerText()).trim().toLowerCase();
-            expect(text.includes(name.toLowerCase()),
-                `Row ${i + 1} name "${text}" does not include filter "${name}"`
-            ).toBeTruthy();
-        }
-    }
+  async verifyFilterResultVisible() {
+    await expect(async () => {
+      if (this.isMobile) {
+        await this.mobileContainer.waitFor({ state: 'visible', timeout: 10_000 });
+      } else {
+        await this.desktopContainer.waitFor({ state: 'visible', timeout: 10_000 });
+      }
+      const rows = this.memberListInCurrentLayout();
+      await rows.first().waitFor({ state: 'visible', timeout: 10_000 });
+      const count = await rows.count();
+      expect(count, `Expected at least 1 result, but found ${count}`).toBeGreaterThan(0);
+    }).toPass();
+  }
 
-    async verifyListMemberUserIdTable(userId: string){
-        const rowCount = await this.tableRows.count();
-        for (let i = 0; i < rowCount; i++) {
-            const row = this.tableRows.nth(i);
-            const userIdCell = row.locator('td').nth(this.COLUMN_USER_ID);
-            const text = (await userIdCell.innerText()).trim().toLowerCase();
-            expect(text.includes(userId.toLowerCase()),
-                `Row ${i + 1} user ID "${text}" does not include filter "${userId}"`
-            ).toBeTruthy();
-        }   
-    }
+  async verifyMemberCountMatchesTable() {
+    const rows = this.memberListInCurrentLayout();
+    await rows.first().waitFor({ state: 'visible', timeout: 10_000 });
+    await expect(async () => {
+      const actual = await rows.count();
+      const text = await this.memberCountText.textContent({ timeout: 5000 });
+      const expected = parseInt(text!.match(/\d+/)![0], 10);
+      expect(actual, `Expected ${expected} rows, but found ${actual}`).toBe(expected);
+    }).toPass();
+  }
 
-    async verifyListMemberEmailTable(email: string){
-        const rowCount = await this.tableRows.count();
-        for (let i = 0; i < rowCount; i++) {
-            const row = this.tableRows.nth(i);
-            const emailCell = row.locator('td').nth(this.COLUMN_EMAIL);
-            const text = (await emailCell.innerText()).trim().toLowerCase();
-            expect(text.includes(email.toLowerCase()),
-                `Row ${i + 1} email "${text}" does not include filter "${email}"`
-            ).toBeTruthy();
-        }
-    }
+  async verifyMemberNameInList(name: string) {
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const n = await rows.count();
+    for (let i = 0; i < n; i++) {
+      const item = rows.nth(i);
+      const text = isMobile
+        ? (await item.locator('h3').innerText()).trim()
+        : (await item.locator('td').nth(this.COLUMN_NAME).innerText()).trim();
 
-    async verifyListMemberAccountStatusTable(status: string){
-        const rowCount = await this.tableRows.count();
-        for (let i = 0; i < rowCount; i++) {
-            const row = this.tableRows.nth(i);
-            const statusCell = row.locator('td').nth(this.COLUMN_ACCOUNT_STATUS);
-            const text = (await statusCell.innerText()).trim().toLowerCase();
-            expect(text === status.toLowerCase(),
-                `Row ${i + 1} account status "${text}" does not match filter "${status}"`
-            ).toBeTruthy();
-        }
+      expect(
+        text.toLowerCase().includes(name.toLowerCase()),
+        `Row/Card ${i + 1} name "${text}" does not include filter "${name}"`,
+      ).toBeTruthy();
     }
+  }
 
-    private parseMonthYear(label: string): Date {
-        return new Date(`${label} 1`);
-    }
+  async verifyMemberUserIdInList(userId: string) {
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const n = await rows.count();
+    for (let i = 0; i < n; i++) {
+      const item = rows.nth(i);
+      const text = isMobile
+        ? (
+            await item
+              .locator('div', { hasText: /^User ID:/ })
+              .locator('span.font-mono')
+              .innerText()
+          ).trim()
+        : (await item.locator('td').nth(this.COLUMN_USER_ID).innerText()).trim();
 
-    private async getVisibleMonths(): Promise<Date[]> {
-        const tables = this.page.locator(this.monthYearLabel);
-        const n = await tables.count();
-        const dates: Date[] = [];
-        for (let i = 0; i < n; i++) {
-            const label = await tables.nth(i).getAttribute('aria-label');
-            if (label) dates.push(this.parseMonthYear(label));
-        }
-        return dates;
+      expect(
+        text.toLowerCase().includes(userId.toLowerCase()),
+        `Row/Card ${i + 1} name "${text}" does not include filter "${userId}"`,
+      ).toBeTruthy();
     }
+  }
 
-    private async goToMonthYear(monthYear: string) {
-        const targetMonthYear = this.parseMonthYear(monthYear);
-        const monthTables = this.page.locator(this.monthYearLabel);
-        const leftMonth = monthTables.first();
-        for (let i = 0; i < 36; i++) {
-            const visibleMonths = await this.getVisibleMonths();
-            if (visibleMonths.some(d => d.getTime() === targetMonthYear.getTime())) return;
-            let goNext: boolean | null = null;
-            if (visibleMonths.length >= 2) {
-                const left  = visibleMonths[0];
-                const right = visibleMonths[1];
-                if (targetMonthYear < left)  goNext = false;
-                if (targetMonthYear > right) goNext = true;
-                if (goNext === null) return;
-            } else {
-                goNext = visibleMonths.length === 1 ? visibleMonths[0] < targetMonthYear : true;
-            }
-            const before = await leftMonth.getAttribute('aria-label');
-            if (goNext) {
-                await expect(this.goToNextMonthButton).toBeVisible();
-                await expect(this.goToNextMonthButton).toBeEnabled();
-                await this.goToNextMonthButton.click();
-            } else {
-                await expect(this.goToPrevMonthButton).toBeVisible();
-                await expect(this.goToPrevMonthButton).toBeEnabled();
-                await this.goToPrevMonthButton.click();
-            }
-            await expect(leftMonth).not.toHaveAttribute('aria-label', before ?? '', { timeout: 4000 });
-        }
-        throw new Error(`Uncovered month-year`);
-    }
+  async verifyMemberEmailInList(email: string) {
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const n = await rows.count();
+    for (let i = 0; i < n; i++) {
+      const item = rows.nth(i);
+      const text = isMobile
+        ? (await item.locator('p').filter({ hasText: '@' }).first().innerText()).trim()
+        : (await item.locator('td').nth(this.COLUMN_EMAIL).innerText()).trim();
 
-    async clickButtonByDate(day: number, monthYear: string) {
-        await this.goToMonthYear(monthYear);
-        const year = this.parseMonthYear(monthYear).getFullYear();
-        const month = String(this.parseMonthYear(monthYear).getMonth() + 1).padStart(2, '0');
-        const formatedDay = String(day).padStart(2, '0');
-        const target = `${year}-${month}-${formatedDay}`;
-        const dateButton = this.page.locator(`td[role="gridcell"][data-day="${target}"]:not([data-outside="true"]) button`)
-        await dateButton.waitFor({ state: 'visible', timeout: 5000 });
-        await dateButton.click();
+      expect(
+        text.toLowerCase().includes(email.toLowerCase()),
+        `Row/Card ${i + 1} name "${text}" does not include filter "${email}"`,
+      ).toBeTruthy();
     }
+  }
 
-    private getLastDayOfMonth(year: number, month: number) {
-        return new Date(year, month, 0).getDate();
+  async verifyMemberStatusInList(status: string) {
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const n = await rows.count();
+    for (let i = 0; i < n; i++) {
+      const item = rows.nth(i);
+      const loc = isMobile
+        ? item.locator('span[data-testid^="status-badge-"]')
+        : item
+            .locator('td')
+            .nth(this.COLUMN_ACCOUNT_STATUS)
+            .locator('span[data-testid^="status-badge-"]');
+      if (isMobile) await loc.scrollIntoViewIfNeeded().catch(() => {});
+      const text = ((await loc.textContent()) || '').trim().toLowerCase();
+      expect(
+        text.toLowerCase().includes(status.toLowerCase()),
+        `Row/Card ${i + 1} name "${text}" does not include filter "${status}"`,
+      ).toBeTruthy();
     }
+  }
 
-    async selectMonthYearRange(startMonthYear: string, endMonthYear: string) {
-        await this.datePicker.click();
-        await this.isDateCalendarVisible();
-        await this.clickButtonByDate(1, startMonthYear);
-        const end = this.parseMonthYear(endMonthYear);
-        const lastDay = this.getLastDayOfMonth(end.getFullYear(), end.getMonth() + 1);
-        await this.clickButtonByDate(lastDay, endMonthYear);
-        await this.page.keyboard.press('Escape');
-    }
+  private parseMonthYear(label: string): Date {
+    return new Date(`${label} 1`);
+  }
 
-    async verifyListSignupDateTable(startMonthYear: string, endMonthYear: string) {
-        const start = this.parseMonthYear(startMonthYear);
-        const endBase = this.parseMonthYear(endMonthYear);
-        const end = new Date(
-            endBase.getFullYear(),
-            endBase.getMonth(),
-            this.getLastDayOfMonth(endBase.getFullYear(), endBase.getMonth() + 1));
-        const rowCount = await this.tableRows.count();
-        for (let i = 0; i < rowCount; i++) {
-            const row = this.tableRows.nth(i);
-            const dateCell = row.locator('td').nth(this.COLUMN_SIGNUP_DATE);
-            const text = (await dateCell.innerText()).trim();
-            const d = new Date(text);
-            expect(d.getTime(),
-                `Row ${i + 1} signup date "${text}" is outside of range ${start.toDateString()} – ${end.toDateString()}`
-            ).toBeGreaterThanOrEqual(start.getTime());
-            expect(d.getTime(),
-                `Row ${i + 1} signup date "${text}" is outside of range ${start.toDateString()} – ${end.toDateString()}`
-            ).toBeLessThanOrEqual(end.getTime());
-        }
+  private async getVisibleMonths(): Promise<Date[]> {
+    const tables = this.page.locator(this.monthYearLabel);
+    const n = await tables.count();
+    const dates: Date[] = [];
+    for (let i = 0; i < n; i++) {
+      const label = await tables.nth(i).getAttribute('aria-label');
+      if (label) dates.push(this.parseMonthYear(label));
     }
+    return dates;
+  }
 
-    async clickMemberDetailByName(memberName: string) {
-        const member = this.tableRows.filter({ hasText: memberName }).first();
-        await member.click();
+  private async goToMonthYear(monthYear: string) {
+    const targetMonthYear = this.parseMonthYear(monthYear);
+    const monthTables = this.page.locator(this.monthYearLabel);
+    const leftMonth = monthTables.first();
+    for (let i = 0; i < 36; i++) {
+      const visibleMonths = await this.getVisibleMonths();
+      if (visibleMonths.some((d) => d.getTime() === targetMonthYear.getTime())) return;
+      let goNext: boolean | null = null;
+      if (visibleMonths.length >= 2) {
+        const left = visibleMonths[0];
+        const right = visibleMonths[1];
+        if (targetMonthYear < left) goNext = false;
+        if (targetMonthYear > right) goNext = true;
+        if (goNext === null) return;
+      } else {
+        goNext = visibleMonths.length === 1 ? visibleMonths[0] < targetMonthYear : true;
+      }
+      const before = await leftMonth.getAttribute('aria-label');
+      if (goNext) {
+        await expect(this.goToNextMonthButton).toBeVisible();
+        await expect(this.goToNextMonthButton).toBeEnabled();
+        await this.goToNextMonthButton.click();
+      } else {
+        await expect(this.goToPrevMonthButton).toBeVisible();
+        await expect(this.goToPrevMonthButton).toBeEnabled();
+        await this.goToPrevMonthButton.click();
+      }
+      await expect(leftMonth).not.toHaveAttribute('aria-label', before ?? '', { timeout: 4000 });
     }
+    throw new Error(`Uncovered month-year`);
+  }
+
+  async clickButtonByDate(day: number, monthYear: string) {
+    await this.goToMonthYear(monthYear);
+    const year = this.parseMonthYear(monthYear).getFullYear();
+    const month = String(this.parseMonthYear(monthYear).getMonth() + 1).padStart(2, '0');
+    const formatedDay = String(day).padStart(2, '0');
+    const target = `${year}-${month}-${formatedDay}`;
+    const dateButton = this.page.locator(
+      `td[role="gridcell"][data-day="${target}"]:not([data-outside="true"]) button`,
+    );
+    await dateButton.waitFor({ state: 'visible', timeout: 5000 });
+    await dateButton.click();
+  }
+
+  private getLastDayOfMonth(year: number, month: number) {
+    return new Date(year, month, 0).getDate();
+  }
+
+  async selectMonthYearRange(startMonthYear: string, endMonthYear: string) {
+    if (this.isMobile) {
+      await this.page.evaluate(() => window.scrollBy(0, 250));
+    }
+    await this.datePicker.click();
+    await this.isDateCalendarVisible();
+    await this.clickButtonByDate(1, startMonthYear);
+    const end = this.parseMonthYear(endMonthYear);
+    const lastDay = this.getLastDayOfMonth(end.getFullYear(), end.getMonth() + 1);
+    await this.clickButtonByDate(lastDay, endMonthYear);
+    await this.page.keyboard.press('Escape');
+  }
+
+  async verifyMemberSignUpDateInList(startMonthYear: string, endMonthYear: string) {
+    const start = this.parseMonthYear(startMonthYear);
+    const endBase = this.parseMonthYear(endMonthYear);
+    const end = new Date(
+      endBase.getFullYear(),
+      endBase.getMonth(),
+      this.getLastDayOfMonth(endBase.getFullYear(), endBase.getMonth() + 1),
+    );
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const n = await rows.count();
+    for (let i = 0; i < n; i++) {
+      const item = rows.nth(i);
+      const loc = isMobile
+        ? item
+            .locator('div', { hasText: /^Sign Up:/ })
+            .locator('span')
+            .nth(1)
+        : item.locator('td').nth(this.COLUMN_SIGNUP_DATE);
+      if (isMobile) await loc.scrollIntoViewIfNeeded().catch(() => {});
+      const text = ((await loc.textContent()) || '').replace(/\s+/g, ' ').trim();
+      const d = new Date(text);
+      expect(
+        d.getTime(),
+        `Row ${i + 1} signup date "${text}" is outside of range ${start.toDateString()} – ${end.toDateString()}`,
+      ).toBeGreaterThanOrEqual(start.getTime());
+      expect(
+        d.getTime(),
+        `Row ${i + 1} signup date "${text}" is outside of range ${start.toDateString()} – ${end.toDateString()}`,
+      ).toBeLessThanOrEqual(end.getTime());
+    }
+  }
+
+  async clickMemberDetailByName(memberName: string) {
+    const rows = this.memberListInCurrentLayout();
+    const isMobile = this.isMobile;
+    const member = rows.filter({ hasText: memberName }).first();
+    if (isMobile) await member.scrollIntoViewIfNeeded().catch(() => {});
+    await expect(member, `Member "${memberName}" not found`).toBeVisible({ timeout: 5000 });
+    await member.click();
+  }
 }

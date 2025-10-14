@@ -1,65 +1,74 @@
-import { expect, Page } from "@playwright/test";
-import { verifyAnalyticsEventProperties } from "../../utils/segment";
-import { clear } from "console";
+import { expect, Page } from '@playwright/test';
+import { verifyAnalyticsEventProperties } from '../../utils/segment';
 
-export class BudgetCalculatorScreen{
-    readonly page: Page;
-    readonly agreeCoockiesButton;
-    readonly budgetCalculatorDesc;
-    readonly incomeInput;
-    readonly zipCodeInput;
-    readonly calculateButton;
-    
-    constructor(page: Page){
-        this.page = page;
-        this.agreeCoockiesButton = page.getByRole('button', { name: /i agree/i });
-        this.budgetCalculatorDesc = page.getByText(/get insights into your spending habits/i)
-        this.incomeInput = page.getByTestId('income');
-        this.zipCodeInput = page.getByTestId('zipcode');
-        this.calculateButton = page.getByTestId('calculate-button');
-    }
+export class BudgetCalculatorScreen {
+  readonly page: Page;
+  readonly agreeCoockiesButton;
+  readonly budgetCalculatorDesc;
+  readonly incomeInput;
+  readonly zipCodeInput;
+  readonly calculateButton;
 
-    async verifyBudgetCalculatorScreenVisible(){
-        await expect(async () => {
-            await this.page.waitForLoadState('domcontentloaded');
-            await this.agreeCoockiesButton.isVisible({ timeout: 10000 });
-            await this.agreeCoockiesButton.click();
-            await expect(this.budgetCalculatorDesc).toBeVisible({ timeout: 5000 });
-        }).toPass();
-    }
+  constructor(page: Page) {
+    this.page = page;
+    this.agreeCoockiesButton = page.getByRole('button', { name: /i agree/i });
+    this.budgetCalculatorDesc = page.getByText(/get insights into your spending habits/i);
+    this.incomeInput = page.getByTestId('income');
+    this.zipCodeInput = page.getByTestId('zipcode');
+    this.calculateButton = page.getByTestId('calculate-button');
+  }
 
-    async calculateBudget(income: string, zipCode: string){
-        await this.incomeInput.fill(income);
-        await this.zipCodeInput.fill(zipCode);
-        await this.calculateButton.click();
-    }
+  async verifyBudgetCalculatorScreenVisible() {
+    await expect(async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.agreeCoockiesButton.isVisible({ timeout: 10000 });
+      await this.agreeCoockiesButton.click();
+      await expect(this.budgetCalculatorDesc).toBeVisible({ timeout: 5000 });
+    }).toPass();
+  }
 
-    async inputIncomeBudgetCalculators(income: string){
-        await this.incomeInput.fill(income);
-    }
+  async calculateBudget(income: string, zipCode: string) {
+    await this.incomeInput.fill(income);
+    await this.zipCodeInput.fill(zipCode);
+    await this.calculateButton.click();
+  }
 
-    async inputZipCodeBudgetCalculators(zipCode: string){
-        await this.zipCodeInput.fill(zipCode);
-    }
+  async inputIncomeBudgetCalculators(income: string) {
+    await this.incomeInput.fill(income);
+  }
 
-    async clickCalculateBudgetCalculator(){
-        await this.calculateButton.click();
-    }
+  async inputZipCodeBudgetCalculators(zipCode: string) {
+    await this.zipCodeInput.fill(zipCode);
+  }
 
-    async verifyEventViewedBudgetCalculators(){
-        await verifyAnalyticsEventProperties(this.page, 'User viewed screen', {screenName: 'Budget Calculator',});
-    }
+  async clickCalculateBudgetCalculator() {
+    await this.calculateButton.click();
+  }
 
-    async verifyEventInputIncomeBudgetCalculators(){
-        await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {elementName: 'Income', component: 'Input Field'});
-    }
+  async verifyEventViewedBudgetCalculators() {
+    await verifyAnalyticsEventProperties(this.page, 'User viewed screen', {
+      screenName: 'Budget Calculator',
+    });
+  }
 
-    async verifyEventInputZipCodeBudgetCalculators(){
-        await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {elementName: 'Zip Code', component: 'Input Field'});
-    }
+  async verifyEventInputIncomeBudgetCalculators() {
+    await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {
+      elementName: 'Income',
+      component: 'Input Field',
+    });
+  }
 
-    async verifyEventCalculateButtonBudgetCalculators(){
-        await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {elementName: 'Calculate', component: 'CTA'});
-    }
+  async verifyEventInputZipCodeBudgetCalculators() {
+    await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {
+      elementName: 'Zip Code',
+      component: 'Input Field',
+    });
+  }
 
+  async verifyEventCalculateButtonBudgetCalculators() {
+    await verifyAnalyticsEventProperties(this.page, 'User interacted with element', {
+      elementName: 'Calculate',
+      component: 'CTA',
+    });
+  }
 }
