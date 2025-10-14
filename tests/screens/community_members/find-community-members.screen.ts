@@ -271,7 +271,7 @@ export class FindCommunityMembersScreen {
 
   async selectMonthYearRange(startMonthYear: string, endMonthYear: string) {
     if (this.isMobile) {
-      await this.page.evaluate(() => window.scrollBy(0, 250));
+      await this.page.evaluate(() => window.scrollBy(0, 300));
     }
     await this.datePicker.click();
     await this.isDateCalendarVisible();
