@@ -48,34 +48,38 @@ jobs:
           echo "env=${{ inputs.environment }}" >> $GITHUB_OUTPUT
           echo "base=${{ inputs.service }}" >> $GITHUB_OUTPUT
 
-      - name: Pick grep tag by URL
+      - name: Pick grep tag by service
         id: pick
         shell: bash
         run: |
-          url="${{ steps.cfg.outputs.base }}"
-          # === Mapping URL -> tag test ===
-          if [[ "$url" == *"community-member"* ]]; then
+          service="${{ steps.cfg.outputs.base }}"
+          if [[ "$service" == *"community-member"* ]]; then
             echo "grep=@cm" >> $GITHUB_OUTPUT
           else
             echo "grep=@earnin" >> $GITHUB_OUTPUT
           fi
-          echo "URL  : $url"
+          echo "SERVICE  : $service"
           echo "GREP : $(sed -n 's/grep=\(.*\)/\1/p' $GITHUB_OUTPUT)"
 
-      - name: Wait target healthy (best effort)
+      - name: Wait target healthy
         continue-on-error: true
         shell: bash
         run: |
-          base="${{ steps.cfg.outputs.base }}"
-          if [ -n "${{ env.HEALTH_PATH }}" ]; then
-            npx wait-on --timeout=240000 "${base%/}${{ env.HEALTH_PATH }}" || true
+          if [ "${{ steps.cfg.outputs.base }}" = "community-member" ]; then
+            url='https://v0-cmlookup2.vercel.app/'
           else
-            npx wait-on --timeout=240000 "$base" || true
+            url='https://www.earnin.com/financial-calculators'
+          fi
+
+          if [ -n "${{ env.HEALTH_PATH }}" ]; then
+            npx wait-on --timeout=240000 "${url%/}${{ env.HEALTH_PATH }}" || true
+          else
+            npx wait-on --timeout=240000 "$url" || true
           fi
 
       - name: Run Playwright (${{ matrix.project }})
         env:
-          BASE_URL: ${{ steps.cfg.outputs.base }}
+          SERVICE: ${{ steps.cfg.outputs.base }}
         run: |
           npx playwright test \
             --grep "${{ steps.pick.outputs.grep }}" \
