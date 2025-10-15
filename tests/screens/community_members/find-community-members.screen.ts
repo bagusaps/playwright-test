@@ -213,21 +213,23 @@ export class FindCommunityMembersScreen {
     const targetMonthYear = this.parseMonthYear(monthYear);
     const currentMonth = this.page.locator(this.monthYearLabel).first();
     for (let i = 0; i < 36; i++) {
-        const currentMonthLabel = await currentMonth.getAttribute('aria-label');
-        if (!currentMonthLabel) throw new Error('current month label not found');
-        const currentMonthYear = this.parseMonthYear(currentMonthLabel);
-        if (currentMonthYear.getTime() === targetMonthYear.getTime()) return;
-        const goNext = currentMonthYear < targetMonthYear;
-        if (goNext) {
-          await expect(this.goToNextMonthButton).toBeVisible();
-          await expect(this.goToNextMonthButton).toBeEnabled();
-          await this.goToNextMonthButton.click();
+      const currentMonthLabel = await currentMonth.getAttribute('aria-label');
+      if (!currentMonthLabel) throw new Error('current month label not found');
+      const currentMonthYear = this.parseMonthYear(currentMonthLabel);
+      if (currentMonthYear.getTime() === targetMonthYear.getTime()) return;
+      const goNext = currentMonthYear < targetMonthYear;
+      if (goNext) {
+        await expect(this.goToNextMonthButton).toBeVisible();
+        await expect(this.goToNextMonthButton).toBeEnabled();
+        await this.goToNextMonthButton.click();
       } else {
-          await expect(this.goToPrevMonthButton).toBeVisible();
-          await expect(this.goToPrevMonthButton).toBeEnabled();
-          await this.goToPrevMonthButton.click();
+        await expect(this.goToPrevMonthButton).toBeVisible();
+        await expect(this.goToPrevMonthButton).toBeEnabled();
+        await this.goToPrevMonthButton.click();
       }
-      await expect(currentMonth).not.toHaveAttribute('aria-label', currentMonthLabel, { timeout: 4000 });
+      await expect(currentMonth).not.toHaveAttribute('aria-label', currentMonthLabel, {
+        timeout: 4000,
+      });
     }
     throw new Error(`Uncovered month-year`);
   }

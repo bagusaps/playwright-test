@@ -1,0 +1,104 @@
+name: Simulate deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Select environtment"
+        type: choice
+        required: true
+        default: qa
+        options: [qa, preprod]
+      service:
+        description: "Select service"
+        type: choice
+        required: true
+        default: community-member
+        options: [community-member, earnin]
+
+permissions:
+  contents: read
+  packages: read
+  deployments: write
+
+concurrency:
+  group: deploy-${{ github.ref }}-${{ github.event.inputs.environment }}
+  cancel-in-progress: true
+
+jobs:
+  create_deployment:
+    runs-on: ubuntu-latest
+    outputs:
+      deployment_id: ${{ steps.create.outputs.deployment_id }}
+    steps:
+      - name: Create GitHub Deployment (in_progress)
+        id: create
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          env_name='${{ github.event.inputs.environment }}'
+          if [ "${{ github.event.inputs.service }}" = "community-member" ]; then
+            env_url='https://v0-cmlookup2.vercel.app/'
+          else
+            env_url='https://www.earnin.com/financial-calculators'
+          fi
+
+          resp=$(gh api repos/${{ github.repository }}/deployments \
+            -f ref=${{ github.sha }} \
+            -f environment="$env_name" \
+            -f auto_merge=false \
+            -f required_contexts='[]' \
+            -F description='Deploy started (E2E gate pending)')
+          echo "$resp"
+          dep_id=$(echo "$resp" | jq -r '.id')
+          echo "deployment_id=$dep_id" >> $GITHUB_OUTPUT
+
+          gh api repos/${{ github.repository }}/deployments/$dep_id/statuses \
+            -f state=in_progress \
+            -f environment="$env_name" \
+            -f environment_url="$env_url" \
+            -F description='E2E Automation is running...'
+
+  e2e_automation:
+    needs: create_deployment
+    uses: ./.github/workflows/e2e-reusable.yml
+    with:
+      environment: ${{ github.event.inputs.environment }}
+      service: ${{ github.event.inputs.service }}
+
+  finalize_deployment:
+    needs: [create_deployment, e2e_automation]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set deployment status (SUCCESS if E2E passed, else FAILURE)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dep_id='${{ needs.create_deployment.outputs.deployment_id }}'
+          env_name='${{ github.event.inputs.environment }}'
+          service='${{ github.event.inputs.service }}'
+
+          if [ "${{ needs.e2e_automation.result }}" = "success" ]; then
+            state=success
+            desc='Deployment passed E2E quality gate'
+          else
+            state=failure
+            desc='Deployment failed E2E quality gate (see reports)'
+          fi
+
+          gh api repos/${{ github.repository }}/deployments/$dep_id/statuses \
+            -f state="$state" \
+            -f environment="$env_name" \
+            -f service="$service" \
+            -F description="$desc"
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Deploy Report (Quality Gate)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Environment**: \`${{ github.event.inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Service**: ${{ github.event.inputs.service }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Result**: \`${{ needs.e2e_automation.result }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "> Cek artifacts \`playwright-report-*\` dan \`artifacts-*\` untuk detail failure." >> $GITHUB_STEP_SUMMARY

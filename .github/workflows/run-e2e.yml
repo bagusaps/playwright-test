@@ -1,0 +1,101 @@
+name: Run E2E Automation
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        required: true
+        type: string
+      service:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+  deployments: read
+
+env:
+  TZ: Asia/Bangkok
+  HEALTH_PATH: /health
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository_owner }}/playwright-test:latest
+      env:
+        CI: "true"
+        TZ: ${{ env.TZ }}
+    strategy:
+      fail-fast: false
+      matrix:
+        project: ["Chromium Desktop", "Safari Mobile"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve inputs
+        id: cfg
+        run: |
+          echo "env=${{ inputs.environment }}" >> $GITHUB_OUTPUT
+          echo "base=${{ inputs.service }}" >> $GITHUB_OUTPUT
+
+      - name: Pick grep tag by URL
+        id: pick
+        shell: bash
+        run: |
+          url="${{ steps.cfg.outputs.base }}"
+          # === Mapping URL -> tag test ===
+          if [[ "$url" == *"community-member"* ]]; then
+            echo "grep=@cm" >> $GITHUB_OUTPUT
+          else
+            echo "grep=@earnin" >> $GITHUB_OUTPUT
+          fi
+          echo "URL  : $url"
+          echo "GREP : $(sed -n 's/grep=\(.*\)/\1/p' $GITHUB_OUTPUT)"
+
+      - name: Wait target healthy (best effort)
+        continue-on-error: true
+        shell: bash
+        run: |
+          base="${{ steps.cfg.outputs.base }}"
+          if [ -n "${{ env.HEALTH_PATH }}" ]; then
+            npx wait-on --timeout=240000 "${base%/}${{ env.HEALTH_PATH }}" || true
+          else
+            npx wait-on --timeout=240000 "$base" || true
+          fi
+
+      - name: Run Playwright (${{ matrix.project }})
+        env:
+          BASE_URL: ${{ steps.cfg.outputs.base }}
+        run: |
+          npx playwright test \
+            --grep "${{ steps.pick.outputs.grep }}" \
+            --project="${{ matrix.project }}" \
+            --reporter=line,html,junit
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report
+          retention-days: 7
+
+      - name: Upload traces/screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.project }}
+          path: |
+            test-results/**
+            playwright-report/**
+          retention-days: 7
