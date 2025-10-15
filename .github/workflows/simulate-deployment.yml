@@ -46,8 +46,6 @@ jobs:
           resp=$(gh api repos/${{ github.repository }}/deployments \
             -f ref=${{ github.sha }} \
             -f environment="$env_name" \
-            -F auto_merge=false \
-            -F required_contexts=[] \
             -F description='Deploy started (E2E gate pending)')
           echo "$resp"
           dep_id=$(echo "$resp" | jq -r '.id')
