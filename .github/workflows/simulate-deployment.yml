@@ -61,7 +61,7 @@ jobs:
 
   e2e_automation:
     needs: create_deployment
-    uses: ./.github/workflows/e2e-reusable.yml
+    uses: ./.github/workflows/run-e2e.yml
     with:
       environment: ${{ github.event.inputs.environment }}
       service: ${{ github.event.inputs.service }}
