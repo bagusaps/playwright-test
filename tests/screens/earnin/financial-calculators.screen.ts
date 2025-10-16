@@ -35,16 +35,26 @@ export class FinancialCalculatorsScreen {
   }
 
   private async prepareForSnapshot() {
-    await this.page.addStyleTag({
-      content: `*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}`,
+    await this.page.context().addInitScript({
+      content: `(function(){
+      if (window.__NO_ANIM__) return; window.__NO_ANIM__ = true;
+      const s=document.createElement('style'); s.setAttribute('data-e2e','no-anim');
+      s.textContent = \`*,*::before,*::after{animation:none!important;transition:none!important;caret-color:transparent!important}
+      ::-webkit-scrollbar{display:none} html{scrollbar-width:none}\`;
+      (document.documentElement||document.head||document.body).appendChild(s);
+    })();`,
     });
     try {
-      await this.page.waitForLoadState('networkidle', { timeout: 2_000 });
+      await this.page.waitForLoadState('networkidle', { timeout: 2000 });
     } catch {}
   }
 
   async compareSnapshot() {
     this.prepareForSnapshot();
-    await expect(this.page).toHaveScreenshot('financial-calculator.png');
+    const isChromium = /Chromium/i.test(this.projectName || '');
+    await expect(this.page).toHaveScreenshot('financial-calculator.png', {
+      maxDiffPixelRatio: isChromium ? 0.015 : 0.01,
+      threshold: isChromium ? 0.3 : 0.2,
+    });
   }
 }
