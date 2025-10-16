@@ -15,10 +15,6 @@ permissions:
   packages: read
   deployments: read
 
-env:
-  TZ: Asia/Bangkok
-  HEALTH_PATH: /health
-
 jobs:
   e2e:
     runs-on: ubuntu-latest
@@ -26,7 +22,7 @@ jobs:
       image: ghcr.io/${{ github.repository_owner }}/playwright-test:latest
       env:
         CI: "true"
-        TZ: ${{ env.TZ }}
+        TZ: Asia/Bangkok
     strategy:
       fail-fast: false
       matrix:
@@ -61,21 +57,18 @@ jobs:
           echo "SERVICE  : $service"
           echo "GREP : $(sed -n 's/grep=\(.*\)/\1/p' $GITHUB_OUTPUT)"
 
-      - name: Wait target healthy
+      - name: Wait target ready
         continue-on-error: true
         shell: bash
         run: |
-          if [ "${{ steps.cfg.outputs.base }}" = "community-member" ]; then
-            url='https://v0-cmlookup2.vercel.app/'
-          else
-            url='https://www.earnin.com/financial-calculators'
-          fi
-
-          if [ -n "${{ env.HEALTH_PATH }}" ]; then
-            npx wait-on --timeout=240000 "${url%/}${{ env.HEALTH_PATH }}" || true
-          else
-            npx wait-on --timeout=240000 "$url" || true
-          fi
+          svc='${{ steps.cfg.outputs.svc }}'
+          case "$svc" in
+            community-member|cm) url='https://v0-cmlookup2.vercel.app/' ;;
+            earnin|ei)           url='https://www.earnin.com/financial-calculators' ;;
+            *) echo "Unknown service: $svc"; exit 1 ;;
+          esac
+          echo "Waiting on: $url"
+          npx wait-on --timeout=240000 "$url" || true
 
       - name: Run Playwright (${{ matrix.project }})
         env:

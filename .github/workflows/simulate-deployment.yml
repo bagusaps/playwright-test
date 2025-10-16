@@ -79,10 +79,10 @@ jobs:
 
           if [ "${{ needs.e2e_automation.result }}" = "success" ]; then
             state=success
-            desc='Deployment passed E2E quality gate'
+            desc='E2E automation success'
           else
             state=failure
-            desc='Deployment failed E2E quality gate (see reports)'
+            desc='E2E automation failed.(see reports)'
           fi
 
           gh api repos/${{ github.repository }}/deployments/$dep_id/statuses \
@@ -99,4 +99,4 @@ jobs:
           echo "- **Service**: ${{ github.event.inputs.service }}" >> $GITHUB_STEP_SUMMARY
           echo "- **E2E Result**: \`${{ needs.e2e_automation.result }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "> Cek artifacts \`playwright-report-*\` dan \`artifacts-*\` untuk detail failure." >> $GITHUB_STEP_SUMMARY
+          echo "> Cek artifacts \`playwright-report-*\` and \`artifacts-*\` for the detail failure." >> $GITHUB_STEP_SUMMARY
