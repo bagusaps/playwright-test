@@ -4,6 +4,7 @@ import path from 'path';
 
 export class MemberDetailScreen {
   readonly page: Page;
+  readonly projectName: string;
   readonly memberNameTitle;
   readonly kycBadge;
   readonly cashoutBadge;
@@ -12,8 +13,9 @@ export class MemberDetailScreen {
   readonly memberNotReadyTitle;
   readonly invalidMemberDescription;
 
-  constructor(page: Page) {
+  constructor(page: Page, projectName = '') {
     this.page = page;
+    this.projectName = projectName;
     this.memberNameTitle = page.locator('h1.text-2xl.font-bold.text-black');
     this.kycBadge = page
       .locator('div.flex.items-center.gap-2', { hasText: 'KYC:' })
@@ -30,7 +32,7 @@ export class MemberDetailScreen {
   }
 
   async goToMemberDetailPage(memberId: string) {
-    await this.page.goto(`https://v0-cmlookup2.vercel.app/members/${memberId}`);
+    await this.page.goto(`/members/${memberId}`);
   }
 
   async verifyMemberNameTitleVisible(name: string) {

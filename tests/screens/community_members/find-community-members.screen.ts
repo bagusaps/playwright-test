@@ -54,7 +54,7 @@ export class FindCommunityMembersScreen {
   }
 
   async goto() {
-    await this.page.goto('https://v0-cmlookup2.vercel.app/');
+    await this.page.goto('/');
   }
 
   async isfindCommunityMembersScreenTitleVisible() {

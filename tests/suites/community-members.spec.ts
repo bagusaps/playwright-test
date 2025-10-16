@@ -75,7 +75,7 @@ test.describe('Community member scenario @cm', () => {
 
   test('User navigate to valid member datail page', async ({ page }, testInfo) => {
     const findCommunityMembersScreen = new FindCommunityMembersScreen(page, testInfo.project.name);
-    const memberDetail = new MemberDetailScreen(page);
+    const memberDetail = new MemberDetailScreen(page, testInfo.project.name);
     await findCommunityMembersScreen.goto();
     await findCommunityMembersScreen.isfindCommunityMembersScreenTitleVisible();
     await findCommunityMembersScreen.filterMemberByName('Jennifer Brown');
@@ -88,14 +88,14 @@ test.describe('Community member scenario @cm', () => {
     await memberDetail.verifyMemberAccountBadge('Active');
   });
 
-  test('User navigate to member not found page', async ({ page }) => {
-    const memberDetail = new MemberDetailScreen(page);
+  test('User navigate to member not found page', async ({ page }, testInfo) => {
+    const memberDetail = new MemberDetailScreen(page, testInfo.project.name);
     await memberDetail.goToMemberDetailPage('123456789');
     await memberDetail.verifyMemberNotFound();
   });
 
-  test('User navigate to member not ready page', async ({ page }) => {
-    const memberDetail = new MemberDetailScreen(page);
+  test('User navigate to member not ready page', async ({ page }, testInfo) => {
+    const memberDetail = new MemberDetailScreen(page, testInfo.project.name);
     await memberDetail.mockMemberNotReadyPage();
     await memberDetail.goToMemberDetailPage('987654321');
     await memberDetail.verifyMemberNotReady();
