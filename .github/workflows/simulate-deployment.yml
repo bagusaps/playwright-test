@@ -1,4 +1,4 @@
-name: Simulate deployment
+name: Simulate Deployment
 
 on:
   workflow_dispatch:

@@ -19,72 +19,56 @@ jobs:
   e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/${{ github.repository_owner }}/playwright-test:latest
+      image: ghcr.io/${{ github.repository_owner }}/playwright-test:sha-${{ github.sha }}
       env:
         CI: "true"
         TZ: Asia/Bangkok
+
+    defaults:
+      run:
+        shell: bash
+        working-directory: /app
+
     strategy:
       fail-fast: false
       matrix:
         project: ["Chromium Desktop", "Safari Mobile"]
+
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Resolve inputs
-        id: cfg
+      - name: Resolve service → URL + tag
+        id: target
         run: |
-          echo "env=${{ inputs.environment }}" >> $GITHUB_OUTPUT
-          echo "base=${{ inputs.service }}" >> $GITHUB_OUTPUT
-
-      - name: Pick grep tag by service
-        id: pick
-        shell: bash
-        run: |
-          service="${{ steps.cfg.outputs.base }}"
-          if [[ "$service" == *"community-member"* ]]; then
-            echo "grep=@cm" >> $GITHUB_OUTPUT
-          else
-            echo "grep=@earnin" >> $GITHUB_OUTPUT
-          fi
-          echo "SERVICE  : $service"
-          echo "GREP : $(sed -n 's/grep=\(.*\)/\1/p' $GITHUB_OUTPUT)"
+          svc='${{ inputs.service }}'
+          case "$svc" in
+            community-member|cm) url='https://v0-cmlookup2.vercel.app/'; grep='@cm' ;;
+            earnin|ei)           url='https://www.earnin.com/financial-calculators'; grep='@earnin' ;;
+            *) echo "Unknown service: $svc"; exit 1 ;;
+          esac
+          echo "url=$url"   >> $GITHUB_OUTPUT
+          echo "grep=$grep" >> $GITHUB_OUTPUT
+          echo "SERVICE=$svc / URL=$url / GREP=$grep"
 
       - name: Wait target ready
         continue-on-error: true
-        shell: bash
         run: |
-          svc='${{ steps.cfg.outputs.svc }}'
-          case "$svc" in
-            community-member|cm) url='https://v0-cmlookup2.vercel.app/' ;;
-            earnin|ei)           url='https://www.earnin.com/financial-calculators' ;;
-            *) echo "Unknown service: $svc"; exit 1 ;;
-          esac
-          echo "Waiting on: $url"
+          url='${{ steps.target.outputs.url }}'
           npx wait-on --timeout=240000 "$url" || true
 
       - name: Run Playwright (${{ matrix.project }})
         env:
-          SERVICE: ${{ steps.cfg.outputs.base }}
+          BASE_URL: ${{ steps.target.outputs.url }}
         run: |
           npx playwright test \
-            --grep "${{ steps.pick.outputs.grep }}" \
+            --grep "${{ steps.target.outputs.grep }}" \
             --project="${{ matrix.project }}" \
-            --reporter=line,html,junit
+            --reporter=github,html,junit
 
       - name: Upload HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report-${{ matrix.project }}
-          path: playwright-report
+          path: /app/playwright-report
           retention-days: 7
 
       - name: Upload traces/screenshots
@@ -93,6 +77,6 @@ jobs:
         with:
           name: artifacts-${{ matrix.project }}
           path: |
-            test-results/**
-            playwright-report/**
+            /app/test-results/**
+            /app/playwright-report/**
           retention-days: 7
