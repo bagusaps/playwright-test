@@ -20,6 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/${{ github.repository_owner }}/playwright-test:sha-${{ github.sha }}
+      options: --user 0:0 
       env:
         CI: "true"
         TZ: Asia/Bangkok
@@ -40,8 +41,8 @@ jobs:
         run: |
           svc='${{ inputs.service }}'
           case "$svc" in
-            community-member|cm) url='https://v0-cmlookup2.vercel.app/'; grep='@cm' ;;
-            earnin|ei)           url='https://www.earnin.com/financial-calculators'; grep='@earnin' ;;
+            community-member) url='https://v0-cmlookup2.vercel.app/'; grep='@cm' ;;
+            earnin)           url='https://www.earnin.com/financial-calculators'; grep='@earnin' ;;
             *) echo "Unknown service: $svc"; exit 1 ;;
           esac
           echo "url=$url"   >> $GITHUB_OUTPUT
