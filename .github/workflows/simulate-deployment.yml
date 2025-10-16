@@ -94,9 +94,9 @@ jobs:
       - name: Summary
         if: always()
         run: |
-          echo "## Deploy Report (Quality Gate)" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Report" >> $GITHUB_STEP_SUMMARY
           echo "- **Environment**: \`${{ github.event.inputs.environment }}\`" >> $GITHUB_STEP_SUMMARY
           echo "- **Service**: ${{ github.event.inputs.service }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **E2E Result**: \`${{ needs.e2e_automation.result }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **E2E Automation Result**: \`${{ needs.e2e_automation.result }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "> Cek artifacts \`playwright-report-*\` and \`artifacts-*\` for the detail failure." >> $GITHUB_STEP_SUMMARY
+          echo "> Check artifacts \`playwright-report-*\` and \`artifacts-*\` for the detail failure." >> $GITHUB_STEP_SUMMARY
