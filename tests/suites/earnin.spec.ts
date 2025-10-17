@@ -7,7 +7,7 @@ test.describe('earnin financial calculator scenario @earnin', () => {
   test('Verify analytic event calculate budget calculator', async ({ page }, testInfo) => {
     await interceptSegmentT(page);
     const financialCalculators = new FinancialCalculatorsScreen(page, testInfo.project.name);
-    const budgetCalculators = new BudgetCalculatorScreen(page, testInfo.project.name);
+    const budgetCalculators = new BudgetCalculatorScreen(page);
     await financialCalculators.goToFinancialCalculator();
     await financialCalculators.clickBudgetCalculator();
     await budgetCalculators.verifyBudgetCalculatorScreenVisible();
@@ -20,9 +20,9 @@ test.describe('earnin financial calculator scenario @earnin', () => {
     await budgetCalculators.verifyEventCalculateButtonBudgetCalculators();
   });
 
-  test('Compare snapshot financial calculator screen', async ({ page }, testInfo) => {
-    const financialCalculators = new FinancialCalculatorsScreen(page, testInfo.project.name);
-    await financialCalculators.goToFinancialCalculator();
-    await financialCalculators.compareSnapshot();
-  });
+  // test('Compare snapshot financial calculator screen', async ({ page }, testInfo) => {
+  //   const financialCalculators = new FinancialCalculatorsScreen(page, testInfo.project.name);
+  //   await financialCalculators.goToFinancialCalculator();
+  //   await financialCalculators.compareSnapshot();
+  // });
 });

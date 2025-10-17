@@ -16,13 +16,13 @@ export class FinancialCalculatorsScreen {
   }
 
   async goToFinancialCalculator() {
-    await this.page.goto('/financial-calculators', {waitUntil: 'commit',timeout: 30_000,});
-    await this.page.waitForLoadState('domcontentloaded')
-    await this.agreeCookiesButton.isVisible({ timeout: 30000 });
-    await this.agreeCookiesButton.click();
-    await this.page.waitForTimeout(3000);
-    await this.page.waitForLoadState('domcontentloaded')
-    await expect(this.financialCalculatorsDesc).toBeVisible({ timeout: 30000 });
+    await this.page.goto('https://www.earnin.com/financial-calculators');
+    await expect(async () => {
+      await this.page.waitForLoadState('domcontentloaded');
+      await this.agreeCookiesButton.isVisible({ timeout: 10000 });
+      await this.agreeCookiesButton.click();
+      await expect(this.financialCalculatorsDesc).toBeVisible({ timeout: 5000 });
+    }).toPass();
   }
 
   async clickBudgetCalculator() {
