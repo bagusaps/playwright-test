@@ -20,9 +20,9 @@ test.describe('earnin financial calculator scenario @earnin', () => {
     await budgetCalculators.verifyEventCalculateButtonBudgetCalculators();
   });
 
-  // test('Compare snapshot financial calculator screen', async ({ page }, testInfo) => {
-  //   const financialCalculators = new FinancialCalculatorsScreen(page, testInfo.project.name);
-  //   await financialCalculators.goToFinancialCalculator();
-  //   await financialCalculators.compareSnapshot();
-  // });
+  test('Compare snapshot financial calculator screen', async ({ page }, testInfo) => {
+    const financialCalculators = new FinancialCalculatorsScreen(page, testInfo.project.name);
+    await financialCalculators.goToFinancialCalculator();
+    await financialCalculators.compareSnapshot();
+  });
 });
