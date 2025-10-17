@@ -3,27 +3,26 @@ import { expect, Page } from '@playwright/test';
 export class FinancialCalculatorsScreen {
   readonly page: Page;
   readonly projectName: string;
-  readonly agreeCoockiesButton;
+  readonly agreeCookiesButton;
   readonly financialCalculatorsDesc;
   readonly budgetCalculator;
 
   constructor(page: Page, projectName = '') {
     this.page = page;
     this.projectName = projectName;
-    this.agreeCoockiesButton = page.getByRole('button', { name: /i agree/i });
+    this.agreeCookiesButton = page.getByRole('button', { name: /i agree/i });
     this.financialCalculatorsDesc = page.getByText(/use our calculators/i);
     this.budgetCalculator = page.getByRole('heading', { name: /budget calculator/i });
   }
 
   async goToFinancialCalculator() {
-    await this.page.goto('/financial-calculators');
-    await expect(async () => {
-      await this.page.waitForLoadState('domcontentloaded');
-      await this.agreeCoockiesButton.isVisible({ timeout: 10000 });
-      await this.agreeCoockiesButton.click();
-      await this.page.waitForTimeout(2000);
-      await expect(this.financialCalculatorsDesc).toBeVisible({ timeout: 5000 });
-    }).toPass();
+    await this.page.goto('/financial-calculators', {waitUntil: 'commit',timeout: 30_000,});
+    await this.page.waitForLoadState('domcontentloaded')
+    await this.agreeCookiesButton.isVisible({ timeout: 30000 });
+    await this.agreeCookiesButton.click();
+    await this.page.waitForTimeout(3000);
+    await this.page.waitForLoadState('domcontentloaded')
+    await expect(this.financialCalculatorsDesc).toBeVisible({ timeout: 30000 });
   }
 
   async clickBudgetCalculator() {

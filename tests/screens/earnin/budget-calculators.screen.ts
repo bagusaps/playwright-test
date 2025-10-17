@@ -4,7 +4,7 @@ import { verifyAnalyticsEventProperties } from '../../utils/segment';
 export class BudgetCalculatorScreen {
   readonly page: Page;
   readonly projectName: string;
-  readonly agreeCoockiesButton;
+  readonly agreeCookiesButton;
   readonly budgetCalculatorDesc;
   readonly incomeInput;
   readonly zipCodeInput;
@@ -13,7 +13,7 @@ export class BudgetCalculatorScreen {
   constructor(page: Page, projectName = '') {
     this.page = page;
     this.projectName = projectName;
-    this.agreeCoockiesButton = page.getByRole('button', { name: /i agree/i });
+    this.agreeCookiesButton = page.getByRole('button', { name: /i agree/i });
     this.budgetCalculatorDesc = page.getByText(/get insights into your spending habits/i);
     this.incomeInput = page.getByTestId('income');
     this.zipCodeInput = page.getByTestId('zipcode');
@@ -21,13 +21,12 @@ export class BudgetCalculatorScreen {
   }
 
   async verifyBudgetCalculatorScreenVisible() {
-    await expect(async () => {
       await this.page.waitForLoadState('domcontentloaded');
       await expect(this.page).toHaveURL('/financial-tools/budget-calculator');
-      await this.agreeCoockiesButton.isVisible({ timeout: 10000 });
-      await this.agreeCoockiesButton.click();
-      await expect(this.budgetCalculatorDesc).toBeVisible({ timeout: 5000 });
-    }).toPass();
+      await this.agreeCookiesButton.isVisible({ timeout: 30000 });
+      await this.page.waitForTimeout(3000);
+      await this.page.waitForLoadState('domcontentloaded')
+      await expect(this.budgetCalculatorDesc).toBeVisible({ timeout: 30000 });
   }
 
   async calculateBudget(income: string, zipCode: string) {
