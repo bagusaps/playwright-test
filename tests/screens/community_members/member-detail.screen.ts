@@ -32,7 +32,7 @@ export class MemberDetailScreen {
   }
 
   async goToMemberDetailPage(memberId: string) {
-    await this.page.goto(`/members/${memberId}`);
+    await this.page.goto(`https://v0-cmlookup2.vercel.app/members/${memberId}`);
   }
 
   async verifyMemberNameTitleVisible(name: string) {

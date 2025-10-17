@@ -1,8 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const CM_BASE_URL = 'https://v0-cmlookup2.vercel.app/';
-const EI_BASE_URL = 'https://www.earnin.com';
-
 export default defineConfig({
   testDir: './tests',
   timeout: 60 * 1000,
@@ -35,42 +32,19 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'CM - Chromium Desktop',
+      name: 'Chromium Desktop',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: CM_BASE_URL,
       },
-      grep: /@cm/,
     },
     {
-      name: 'CM - Safari Mobile',
+      name: 'Safari Mobile',
       use: {
         browserName: 'webkit',
         viewport: { width: 480, height: 920 },
         hasTouch: true,
         deviceScaleFactor: 3,
-        baseURL: CM_BASE_URL,
       },
-      grep: /@cm/,
-    },
-    {
-      name: 'EI - Chromium Desktop',
-      use: {
-        ...devices['Desktop Chrome'],
-        baseURL: EI_BASE_URL,
-      },
-      grep: /@earnin/,
-    },
-    {
-      name: 'EI - Safari Mobile',
-      use: {
-        browserName: 'webkit',
-        viewport: { width: 480, height: 920 },
-        hasTouch: true,
-        deviceScaleFactor: 3,
-        baseURL: EI_BASE_URL,
-      },
-      grep: /@earnin/,
     },
   ],
 });
