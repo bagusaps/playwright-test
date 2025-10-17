@@ -24,3 +24,11 @@ The repo builds a Docker image that already contains:
 - Playwright browsers
 
 This lets CI run tests **inside the container** without checking out code or installing dependencies.
+
+## How to run simulate deployment and trigger E2E automation
+
+steps:
+
+- Go to Actions → select Simulate Deployment.
+- Choose end and service (cm or earnin) and click Run workflow.
+- Open the run → download Artifacts to view the HTML report, videos, and traces.
