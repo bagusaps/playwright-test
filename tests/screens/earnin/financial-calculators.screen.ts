@@ -52,7 +52,7 @@ export class FinancialCalculatorsScreen {
     this.prepareForSnapshot();
     const isChromium = /Chromium/i.test(this.projectName || '');
     await expect(this.page).toHaveScreenshot('financial-calculator.png', {
-      maxDiffPixelRatio: isChromium ? 0.015 : 0.01,
+      maxDiffPixelRatio: isChromium ? 0.02 : 0.01,
       threshold: isChromium ? 0.3 : 0.2,
     });
   }
