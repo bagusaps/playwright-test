@@ -30,5 +30,5 @@ This lets CI run tests **inside the container** without checking out code or ins
 steps:
 
 - Go to Actions → select Simulate Deployment.
-- Choose end and service (cm or earnin) and click Run workflow.
+- Choose env and service (community-member or earnin) and click Run workflow.
 - Open the run → download Artifacts to view the HTML report, videos, and traces.
